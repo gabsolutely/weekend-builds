@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Be My Valentine?</title>
+  <link rel="stylesheet" href="design.css" />
+</head>
+<body>
+
+  <!-- Floating hearts background -->
+  <div class="hearts"></div>
+
+  <div class="card">
+
+    <!-- Love letter intro screen -->
+    <div class="screen active" id="letterScreen">
+      <div class="envelope">
+        <div class="envelope-flap"></div>
+        <div class="letter-content">
+          <h2>A Special Message 💝</h2>
+          <p>For someone amazing...</p>
+        </div>
+      </div>
+      <button id="openLetterBtn">Open Letter</button>
+    </div>
+
+    <!-- Password screen -->
+    <div class="screen" id="loginScreen">
+      <h1>Enter the secret password 💭</h1>
+      <img src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWVvM3hqZTlyeXN3YjQ2dHYxdHkydmVkdXFsNHU1Z250emRuNmwwYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Zl7u48zLVFgLpRwq6f/giphy.gif" width="200" />
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <button id="loginBtn">Enter</button>
+      <p id="loginError"></p>
+    </div>
+
+    <!-- Valentine question screen -->
+    <div class="screen" id="valentineScreen">
+      <h1 id="question"></h1>
+
+      <!-- Final GIF (hidden until user says no too many times) -->
+      <img 
+        id="finalGif"
+        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExY21xenRwOXFjcnpjaDZ5enFuam9oZThvb25jdHIzYjI3dHZzZWI2OSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/YLPOIP1jPu1N87yemm/giphy.gif"
+        width="220"
+      />
+
+      <div class="buttons">
+        <button id="yesBtn"><span class="big-yes">Yes</span> 💖</button>
+        <button id="noBtn">No 💔</button>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div class="screen" id="yesScreen">
+      <h1 class="celebration-text">YAYYYY! 💕✨</h1>
+      <img src="https://media.giphy.com/media/MDJ9IbxxvDUQM/giphy.gif" width="200" />
+      <p class="ending-message">I knew you loves me! 😌💖</p>
+      <p class="ending-submessage">Please send me a message 🌹💕</p>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
