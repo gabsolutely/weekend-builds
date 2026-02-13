@@ -1,2 +1,2 @@
-# weekend-projects
-Random builds i make for fun
+# weekend-builds
+Random projects i made for fun
