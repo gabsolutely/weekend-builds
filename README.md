@@ -12,15 +12,15 @@ This repository is a collection of random projects I built for fun, experimentat
 - Have fun building things without deadlines
 
 ## Table Of Contents
-1.) [valentinesWeb](./valentinesWeb)
+1. [valentinesWeb](./valentinesWeb)
 
 ## Getting Started
-1.) Clone the repository:
+1. Clone the repository:
 ```
 git clone https://github.com/<your-username>/weekend-builds.git
 ```
-2.) Navigate into a project folder and follow any setup instructions there.
-3.) Experiment, learn, and enjoy!
+2. Navigate into a project folder and follow any setup instructions there.
+3. Experiment, learn, and enjoy!
 
 ## Contributing
 Feel free to explore, give feedback, or suggest improvements. Most projects are small and self-contained, so contributions are welcome but not required.
