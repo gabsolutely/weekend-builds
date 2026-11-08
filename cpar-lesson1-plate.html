@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CPAR – Elements of Art Plate</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    background:#888;
+    font-family:'Special Elite',monospace;
+    padding:30px 0 60px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar{
+    width:1080px;
+    display:flex;gap:9px;justify-content:flex-end;
+    margin-bottom:10px;
+  }
+  .toolbar button{
+    font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;
+    letter-spacing:1px;text-transform:uppercase;border:none;border-radius:6px;
+    padding:8px 18px;cursor:pointer;display:flex;align-items:center;gap:6px;
+    transition:background .17s, transform .1s;
+  }
+  .toolbar button:active{transform:scale(.96);}
+  .btn-print{background:#2d3a8c;color:#fff;}
+  .btn-print:hover{background:#1e2a6e;}
+  .btn-dl{background:#1a5c38;color:#fff;}
+  .btn-dl:hover{background:#134527;}
+
+  /* ── PAPER  (landscape) ── */
+  .paper{
+    width:1080px;
+    background:#fff;
+    border:3px solid #111;
+    display:flex;
+    flex-direction:column;
+    box-shadow:5px 5px 24px rgba(0,0,0,.45);
+  }
+
+  /* ── GRID  3 col × 2 row ── */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(2,1fr);
+    flex:1;
+  }
+
+  /* ── CELL ── */
+  .cell{
+    border-right:2.5px solid #111;
+    border-bottom:2.5px solid #111;
+    display:flex;
+    min-height:310px;
+    position:relative;
+    overflow:hidden;
+  }
+  .cell:nth-child(3n){border-right:none;}
+  .cell:nth-child(4),.cell:nth-child(5),.cell:nth-child(6){border-bottom:none;}
+
+  /* vertical label strip */
+  .cell-label{
+    width:28px;flex-shrink:0;
+    border-right:1.5px solid #111;
+    position:relative;
+    background:#fff;z-index:2;
+    overflow:hidden;
+  }
+  .cell-label span{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%) rotate(-90deg);
+    white-space:nowrap;
+    font-family:'Special Elite',monospace;
+    font-size:12px;letter-spacing:3px;text-transform:uppercase;
+    color:#111;
+    user-select:none;
+  }
+
+  /* art area */
+  .cell-art{
+    flex:1;overflow:hidden;
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cell-art canvas,
+  .cell-art svg{
+    width:100%;height:100%;display:block;
+    position:absolute;top:0;left:0;
+  }
+
+  /* hint badge */
+  .hint{
+    position:absolute;bottom:5px;right:7px;
+    font-family:'Nunito',sans-serif;font-size:8px;font-weight:800;
+    letter-spacing:.8px;text-transform:uppercase;
+    color:rgba(0,0,0,.35);
+    pointer-events:none;user-select:none;
+    z-index:10;
+  }
+
+  /* ── BOTTOM INFO STRIP ── */
+  .info-strip{
+    border-top:3px solid #111;
+    display:flex;
+    align-items:stretch;
+    min-height:66px;
+  }
+
+  .info-title{
+    width:220px;flex-shrink:0;
+    border-right:2.5px solid #111;
+    position:relative;
+    overflow:hidden;
+    padding:8px 14px;
+  }
+  .info-title p{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    white-space:nowrap;
+    font-family:'Nunito',sans-serif;font-weight:900;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:#111;text-align:center;
+  }
+
+  /* middle: fields */
+  .info-fields{
+    flex:1;
+    display:flex;
+    align-items:center;
+    padding:10px 20px;
+    gap:36px;
+  }
+  .field-group{
+    display:flex;flex-direction:column;gap:3px;min-width:160px;
+  }
+  .field-group label{
+    font-family:'Nunito',sans-serif;font-weight:900;
+    font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:#333;
+  }
+  .field-group input{
+    border:none;border-bottom:1.5px solid #111;
+    font-family:'Special Elite',monospace;font-size:12px;color:#111;
+    background:transparent;outline:none;width:100%;padding:2px 0;
+  }
+  .field-group input::placeholder{color:#ccc;font-size:10px;}
+
+  /* right: score */
+  .info-score{
+    width:120px;flex-shrink:0;
+    border-left:2.5px solid #111;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    padding:8px;gap:4px;
+  }
+  .info-score label{
+    font-family:'Nunito',sans-serif;font-weight:900;
+    font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:#555;
+  }
+  .score-row{
+    display:flex;align-items:baseline;gap:4px;
+  }
+  .score-row input{
+    width:44px;border:none;border-bottom:2px solid #111;
+    font-family:'Special Elite',monospace;font-size:20px;text-align:center;
+    outline:none;background:transparent;color:#111;
+  }
+  .score-row span{
+    font-family:'Special Elite',monospace;font-size:14px;color:#111;
+  }
+
+  /* ── PRINT ── */
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar{display:none!important;}
+    .paper{box-shadow:none;width:100%;border:2px solid #111;}
+    @page{margin:6mm;size:A4 landscape;}
+  }
+</style>
+</head>
+<body>
+
+<!-- TOOLBAR -->
+<div class="toolbar" id="toolbar">
+  <button class="btn-print" onclick="window.print()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>
+    Print
+  </button>
+  <button class="btn-dl" onclick="downloadPlate()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    Download PNG
+  </button>
+</div>
+
+<!-- PAPER -->
+<div class="paper" id="plate">
+
+  <!-- ═══════════════ GRID ═══════════════ -->
+  <div class="grid">
+
+    <!-- ① FORM -->
+    <div class="cell">
+      <div class="cell-label"><span>Form</span></div>
+      <div class="cell-art" id="form-art">
+        <canvas id="form-canvas"></canvas>
+        <div class="hint">click · drag to rotate</div>
+      </div>
+    </div>
+
+    <!-- ② SPACE -->
+    <div class="cell">
+      <div class="cell-label"><span>Space</span></div>
+      <div class="cell-art" id="space-art">
+        <canvas id="space-canvas"></canvas>
+        <div class="hint">click pieces to toggle</div>
+      </div>
+    </div>
+
+    <!-- ③ VALUE -->
+    <div class="cell">
+      <div class="cell-label"><span>Value</span></div>
+      <div class="cell-art" id="value-art">
+        <canvas id="value-canvas"></canvas>
+        <div class="hint">move mouse · touch to shift light</div>
+      </div>
+    </div>
+
+    <!-- ④ LINE -->
+    <div class="cell">
+      <div class="cell-label"><span>Line</span></div>
+      <div class="cell-art" id="line-art">
+        <canvas id="line-canvas"></canvas>
+        <div class="hint">click &amp; drag to draw · right-click to clear</div>
+      </div>
+    </div>
+
+    <!-- ⑤ TEXTURE -->
+    <div class="cell">
+      <div class="cell-label"><span>Texture</span></div>
+      <div class="cell-art" id="texture-art">
+        <canvas id="texture-canvas"></canvas>
+        <div class="hint">click to switch texture</div>
+      </div>
+    </div>
+
+    <!-- ⑥ SHAPE -->
+    <div class="cell">
+      <div class="cell-label"><span>Shape</span></div>
+      <div class="cell-art" id="shape-art">
+        <canvas id="shape-canvas"></canvas>
+        <div class="hint">click shapes to morph</div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- ═══════════════ INFO STRIP ═══════════════ -->
+  <div class="info-strip">
+    <div class="info-title">
+      <p>Elements of Arts</p>
+    </div>
+    <div class="info-fields">
+      <div class="field-group">
+        <label>Name</label>
+        <input type="text" placeholder="Full name" spellcheck="false"/>
+      </div>
+      <div class="field-group">
+        <label>Strand &amp; Section</label>
+        <input type="text" placeholder="e.g. STEM - Q" spellcheck="false"/>
+      </div>
+      <div class="field-group">
+        <label>Date</label>
+        <input type="text" placeholder="Nov 8, 2026" spellcheck="false"/>
+      </div>
+    </div>
+    <div class="info-score">
+      <label>Total Score</label>
+      <div class="score-row">
+        <input type="text" placeholder="__" maxlength="3"/>
+        <span></span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /paper -->
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS — one per artwork cell
+══════════════════════════════════════════════ -->
+<script>
+/* ─────────────────────────────────────────
+   SHARED RESIZE HELPER
+───────────────────────────────────────── */
+function fitCanvas(canvas){
+  const art = canvas.parentElement;
+  const w = art.clientWidth;
+  const h = art.clientHeight;
+  if(canvas.width!==w||canvas.height!==h){
+    canvas.width  = w;
+    canvas.height = h;
+    return true;
+  }
+  return false;
+}
+
+/* ═══════════════════════════════════════
+   ① FORM — interactive spinning gem
+═══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('form-canvas');
+  const art    = document.getElementById('form-art');
+
+  // 3D octahedron vertices (unit)
+  const V = [
+    [ 0, 1, 0],  // top
+    [ 1, 0, 0],  // right
+    [ 0, 0, 1],  // front
+    [-1, 0, 0],  // left
+    [ 0, 0,-1],  // back
+    [ 0,-1, 0],  // bottom
+  ];
+  // faces (triangles)
+  const F = [
+    [0,1,2],[0,2,3],[0,3,4],[0,4,1],
+    [5,2,1],[5,3,2],[5,4,3],[5,1,4],
+  ];
+  // face base shades (pencil grey palette)
+  const shades = ['#e8e8e8','#d4d4d4','#c0c0c0','#aaaaaa','#b8b8b8','#989898','#888888','#b0b0b0'];
+
+  let rotX = 0.4, rotY = 0.6;
+  let spinning = true;
+  let dragStartX, dragStartY, dragging = false;
+  let lastRX = rotX, lastRY = rotY;
+  let spinVX = 0, spinVY = 0.008;
+  let frame;
+
+  function mat3RotX(a){
+    const c=Math.cos(a),s=Math.sin(a);
+    return [[1,0,0],[0,c,-s],[0,s,c]];
+  }
+  function mat3RotY(a){
+    const c=Math.cos(a),s=Math.sin(a);
+    return [[c,0,s],[0,1,0],[-s,0,c]];
+  }
+  function mulMV(m,v){
+    return [
+      m[0][0]*v[0]+m[0][1]*v[1]+m[0][2]*v[2],
+      m[1][0]*v[0]+m[1][1]*v[1]+m[1][2]*v[2],
+      m[2][0]*v[0]+m[2][1]*v[1]+m[2][2]*v[2],
+    ];
+  }
+
+  function project(v,cx,cy,scale){
+    // simple perspective
+    const z = v[2]+3;
+    const px = cx + v[0]/z * scale;
+    const py = cy - v[1]/z * scale;
+    return [px,py,z];
+  }
+
+  function draw(){
+    fitCanvas(canvas);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W/2, cy = H/2;
+    const scale = Math.min(W,H)*0.95;
+
+    // gradient bg
+    const bg = ctx.createRadialGradient(cx,cy*0.7,10,cx,cy,Math.max(W,H)*0.65);
+    bg.addColorStop(0,'#f0f0f0');
+    bg.addColorStop(1,'#b8b8b8');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,W,H);
+
+    const mx = mat3RotX(rotX);
+    const my = mat3RotY(rotY);
+
+    // transform all vertices
+    const tv = V.map(v=>mulMV(mx, mulMV(my, v)));
+    const pv = tv.map(v=>project(v,cx,cy,scale));
+
+    // sort faces back-to-front (painter's algorithm)
+    const sorted = F.map((f,i)=>{
+      const zAvg = (tv[f[0]][2]+tv[f[1]][2]+tv[f[2]][2])/3;
+      return {f,i,zAvg};
+    }).sort((a,b)=>a.zAvg-b.zAvg);
+
+    for(const {f,i} of sorted){
+      const [a,b,c_] = f;
+      const pa = pv[a], pb = pv[b], pc = pv[c_];
+      // back-face cull
+      const nx = (pb[0]-pa[0])*(pc[1]-pa[1])-(pb[1]-pa[1])*(pc[0]-pa[0]);
+      if(nx < 0) continue;
+
+      // lighting — normal of transformed face
+      const na = tv[a], nb = tv[b], nc = tv[c_];
+      const e1 = [nb[0]-na[0],nb[1]-na[1],nb[2]-na[2]];
+      const e2 = [nc[0]-na[0],nc[1]-na[1],nc[2]-na[2]];
+      const norm = [
+        e1[1]*e2[2]-e1[2]*e2[1],
+        e1[2]*e2[0]-e1[0]*e2[2],
+        e1[0]*e2[1]-e1[1]*e2[0],
+      ];
+      const len = Math.sqrt(norm[0]**2+norm[1]**2+norm[2]**2)||1;
+      const nhat = norm.map(x=>x/len);
+      const light = [0.5,0.9,0.7];
+      const llen  = Math.sqrt(light.reduce((s,x)=>s+x*x,0));
+      const lhat  = light.map(x=>x/llen);
+      const diff  = Math.max(0, nhat[0]*lhat[0]+nhat[1]*lhat[1]+nhat[2]*lhat[2]);
+      const brightness = Math.round(80 + diff*160);
+      const baseShade = parseInt(shades[i].slice(1),16);
+      const r = Math.min(255,brightness);
+
+      ctx.beginPath();
+      ctx.moveTo(pa[0],pa[1]);
+      ctx.lineTo(pb[0],pb[1]);
+      ctx.lineTo(pc[0],pc[1]);
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${r},${r},${r})`;
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // shadow ellipse
+    ctx.save();
+    ctx.translate(cx, H*0.88);
+    ctx.scale(1,0.25);
+    const sg = ctx.createRadialGradient(0,0,0,0,0,scale*0.22);
+    sg.addColorStop(0,'rgba(0,0,0,0.28)');
+    sg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.arc(0,0,scale*0.22,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // label
+    ctx.font = '10px "Special Elite"';
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.letterSpacing='2px';
+    ctx.fillText('3-D FORM',cx - 30, H-10);
+
+    if(spinning){
+      rotX += spinVX; rotY += spinVY;
+      frame = requestAnimationFrame(draw);
+    }
+  }
+
+  // drag
+  art.addEventListener('mousedown',e=>{
+    spinning=false; cancelAnimationFrame(frame);
+    dragging=true;
+    dragStartX=e.clientX; dragStartY=e.clientY;
+    lastRX=rotX; lastRY=rotY;
+    spinVX=0; spinVY=0;
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    const dx=e.clientX-dragStartX, dy=e.clientY-dragStartY;
+    rotY = lastRY + dx*0.012;
+    rotX = lastRX + dy*0.012;
+    spinVX = (e.movementY||0)*0.003;
+    spinVY = (e.movementX||0)*0.003;
+    draw();
+  });
+  window.addEventListener('mouseup',()=>{
+    if(!dragging)return;
+    dragging=false;
+    spinning=true;
+    draw();
+  });
+  art.addEventListener('click',()=>{
+    if(!spinning){spinning=true;draw();}
+  });
+
+  // touch
+  let lastTX,lastTY;
+  art.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    spinning=false; cancelAnimationFrame(frame);
+    lastTX=e.touches[0].clientX; lastTY=e.touches[0].clientY;
+    lastRX=rotX; lastRY=rotY;
+  },{passive:false});
+  art.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    const dx=e.touches[0].clientX-lastTX, dy=e.touches[0].clientY-lastTY;
+    rotY+=dx*0.015; rotX+=dy*0.015;
+    lastTX=e.touches[0].clientX; lastTY=e.touches[0].clientY;
+    draw();
+  },{passive:false});
+  art.addEventListener('touchend',()=>{spinning=true;draw();});
+
+  window.addEventListener('resize',()=>{if(!spinning)draw();});
+  draw();
+})();
+
+/* ═══════════════════════════════════════
+   ② SPACE — clickable puzzle pieces
+═══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('space-canvas');
+  const art    = document.getElementById('space-art');
+
+  // Grid of pieces: 4 cols × 3 rows
+  const COLS=4, ROWS=3;
+  // state: true=white(positive), false=black(negative)
+  const state = Array.from({length:ROWS*COLS},(_,i)=>i!==5);// piece 5 starts black
+
+  function puzzlePiecePath(ctx,x,y,w,h,tabs){
+    // tabs: {top,right,bottom,left} — 1=out, -1=in, 0=flat
+    const r = Math.min(w,h)*0.22;
+    ctx.beginPath();
+    // top edge
+    ctx.moveTo(x,y);
+    if(tabs.top!==0){
+      ctx.lineTo(x+w*0.35,y);
+      ctx.arc(x+w*0.5, y+tabs.top*r, r, tabs.top>0?Math.PI:0, tabs.top>0?0:Math.PI, tabs.top<0);
+      ctx.lineTo(x+w,y);
+    } else ctx.lineTo(x+w,y);
+    // right edge
+    if(tabs.right!==0){
+      ctx.lineTo(x+w,y+h*0.35);
+      ctx.arc(x+w-tabs.right*r, y+h*0.5, r, tabs.right>0?Math.PI*1.5:Math.PI*0.5, tabs.right>0?Math.PI*0.5:Math.PI*1.5, tabs.right<0);
+      ctx.lineTo(x+w,y+h);
+    } else ctx.lineTo(x+w,y+h);
+    // bottom edge (reversed)
+    if(tabs.bottom!==0){
+      ctx.lineTo(x+w*0.65,y+h);
+      ctx.arc(x+w*0.5, y+h-tabs.bottom*r, r, tabs.bottom>0?0:Math.PI, tabs.bottom>0?Math.PI:0, tabs.bottom>0);
+      ctx.lineTo(x,y+h);
+    } else ctx.lineTo(x,y+h);
+    // left edge (reversed)
+    if(tabs.left!==0){
+      ctx.lineTo(x,y+h*0.65);
+      ctx.arc(x+tabs.left*r, y+h*0.5, r, tabs.left>0?Math.PI*0.5:Math.PI*1.5, tabs.left>0?Math.PI*1.5:Math.PI*0.5, tabs.left>0);
+      ctx.lineTo(x,y);
+    } else ctx.lineTo(x,y);
+    ctx.closePath();
+  }
+
+  // pre-generate tab configs so adjacent pieces fit
+  function getTab(row,col,side){
+    // deterministic pattern based on position
+    const seed = (row*7+col*13+side*3)%2===0?1:-1;
+    return seed;
+  }
+
+  function getTabs(row,col){
+    return {
+      top:    row===0        ?0: -getTab(row-1,col,2),
+      right:  col===COLS-1  ?0:  getTab(row,col,1),
+      bottom: row===ROWS-1  ?0:  getTab(row,col,2),
+      left:   col===0       ?0: -getTab(row,col-1,1),
+    };
+  }
+
+  // hit test: find which piece was clicked
+  function hitTest(mx,my,W,H){
+    const pad=8;
+    const pw=(W-pad*2)/COLS, ph=(H-pad*2)/ROWS;
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const x=pad+c*pw, y=pad+r*ph;
+        // rough bounding box hit
+        if(mx>=x-pw*0.3&&mx<=x+pw*1.3&&my>=y-ph*0.3&&my<=y+ph*1.3){
+          // more accurate: check with path
+          const ctx=canvas.getContext('2d');
+          puzzlePiecePath(ctx,x,y,pw,ph,getTabs(r,c));
+          if(ctx.isPointInPath(mx,my)) return r*COLS+c;
+        }
+      }
+    }
+    return -1;
+  }
+
+  function draw(){
+    fitCanvas(canvas);
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    const pad=8;
+    const pw=(W-pad*2)/COLS, ph=(H-pad*2)/ROWS;
+
+    // bg
+    ctx.fillStyle='#d4d4d4';
+    ctx.fillRect(0,0,W,H);
+
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const idx=r*COLS+c;
+        const x=pad+c*pw, y=pad+r*ph;
+        const tabs=getTabs(r,c);
+        puzzlePiecePath(ctx,x,y,pw,ph,tabs);
+        ctx.fillStyle = state[idx]?'#ffffff':'#111111';
+        ctx.fill();
+        ctx.strokeStyle='#444';
+        ctx.lineWidth=1.5;
+        ctx.stroke();
+      }
+    }
+
+    // labels
+    ctx.font='9px Nunito';
+    ctx.fillStyle='rgba(0,0,0,0.4)';
+    ctx.fillText('● POSITIVE = white',10,H-18);
+    ctx.fillText('● NEGATIVE = black',10,H-7);
+  }
+
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    const idx=hitTest(mx,my,canvas.width,canvas.height);
+    if(idx>=0){ state[idx]=!state[idx]; draw(); }
+  });
+  window.addEventListener('resize',draw);
+  draw();
+})();
+
+/* ═══════════════════════════════════════
+   ③ VALUE — sphere with mouse-driven light
+═══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('value-canvas');
+  const art    = document.getElementById('value-art');
+  let lightX=0.3, lightY=-0.6, lightZ=0.8;
+
+  function draw(){
+    fitCanvas(canvas);
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
+
+    // bg — subtle paper gradient
+    const bg=ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#f2f2f2'); bg.addColorStop(1,'#c8c8c8');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+    const cx=W*0.42, cy=H*0.47, R=Math.min(W,H)*0.33;
+
+    // cast shadow
+    ctx.save();
+    ctx.translate(cx+R*lightX*0.6, cy+R*0.78);
+    ctx.scale(1.1,0.3);
+    const sg=ctx.createRadialGradient(0,0,0,0,0,R*0.9);
+    sg.addColorStop(0,'rgba(0,0,0,0.35)'); sg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=sg;
+    ctx.beginPath(); ctx.arc(0,0,R*0.9,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    // sphere: raytrace-style radial gradient driven by light pos
+    const hx=cx-lightX*R*0.55, hy=cy+lightY*R*0.55;
+    const sg2=ctx.createRadialGradient(hx,hy,R*0.05,cx,cy,R);
+    sg2.addColorStop(0,'#f8f8f8');
+    sg2.addColorStop(0.25,'#e0e0e0');
+    sg2.addColorStop(0.55,'#aaaaaa');
+    sg2.addColorStop(0.8,'#555555');
+    sg2.addColorStop(1,'#282828');
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,Math.PI*2);
+    ctx.fillStyle=sg2; ctx.fill();
+    ctx.strokeStyle='#333'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // specular
+    ctx.beginPath();
+    ctx.arc(hx,hy,R*0.09,0,Math.PI*2);
+    const sp=ctx.createRadialGradient(hx,hy,0,hx,hy,R*0.09);
+    sp.addColorStop(0,'rgba(255,255,255,0.9)'); sp.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sp; ctx.fill();
+
+    // value scale strip on the right
+    const sx=W*0.78, sy=H*0.15, sw=18, sh=H*0.7;
+    const vs=ctx.createLinearGradient(0,sy,0,sy+sh);
+    vs.addColorStop(0,'#000'); vs.addColorStop(0.5,'#888'); vs.addColorStop(1,'#fff');
+    ctx.fillStyle=vs;
+    ctx.fillRect(sx,sy,sw,sh);
+    ctx.strokeStyle='#555'; ctx.lineWidth=1;
+    ctx.strokeRect(sx,sy,sw,sh);
+    // tick labels
+    ctx.font='7px "Special Elite"';
+    ctx.fillStyle='#333';
+    ctx.letterSpacing='1px';
+    for(let i=0;i<=4;i++){
+      const ty=sy+sh*i/4;
+      ctx.fillRect(sx+sw,ty-0.5,8,1);
+      ctx.fillText(['0','25','50','75','100'][i],sx+sw+10,ty+3);
+    }
+    ctx.save();
+    ctx.translate(sx+sw+32,sy+sh/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.font='8px Nunito';
+    ctx.fillStyle='#555';
+    ctx.fillText('VALUE SCALE',0,0);
+    ctx.restore();
+  }
+
+  function updateLight(e){
+    const r=canvas.getBoundingClientRect();
+    const mx=(e.clientX-r.left)/canvas.width;
+    const my=(e.clientY-r.top)/canvas.height;
+    lightX=(mx-0.5)*2;
+    lightY=-(my-0.5)*2;
+    draw();
+  }
+  canvas.addEventListener('mousemove',updateLight);
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    updateLight(e.touches[0]);
+  },{passive:false});
+  window.addEventListener('resize',draw);
+  draw();
+})();
+
+/* ═══════════════════════════════════════
+   ④ LINE — freehand drawing pad
+═══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('line-canvas');
+
+  const lineTypes=[
+    {name:'Solid',   dash:[],          width:2.5, color:'#111'},
+    {name:'Dashed',  dash:[14,7],       width:2,   color:'#222'},
+    {name:'Dotted',  dash:[2,9],        width:3.5, color:'#333'},
+    {name:'Wavy',    dash:[],           width:2.2, color:'#111', wavy:true},
+    {name:'Thick',   dash:[],           width:7,   color:'#111'},
+    {name:'Hair',    dash:[],           width:0.7, color:'#555'},
+    {name:'Chain',   dash:[18,4,4,4],   width:2,   color:'#222'},
+  ];
+
+  // swatch bar metrics — computed on each draw
+  const SWATCH_H = 34; // px height of the clickable swatch zone at top
+
+  let typeIdx = 0;
+  let drawing = false, hasMoved = false;
+  let lastX = 0, lastY = 0;
+  let wavyT = 0;
+  let offscreen = null; // persistent drawing surface
+
+  /* ── background / swatch layer ── */
+  function initOffscreen(){
+    offscreen = document.createElement('canvas');
+    offscreen.width  = canvas.width;
+    offscreen.height = canvas.height;
+    const ctx = offscreen.getContext('2d');
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // faint dot-grid
+    ctx.fillStyle = 'rgba(0,0,0,0.09)';
+    for(let x=0; x<canvas.width; x+=22)
+      for(let y=SWATCH_H+6; y<canvas.height; y+=22){
+        ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2); ctx.fill();
+      }
+  }
+
+  function ensureOffscreen(){
+    if(!offscreen || offscreen.width!==canvas.width || offscreen.height!==canvas.height){
+      const prev = offscreen;
+      initOffscreen();
+      if(prev) offscreen.getContext('2d').drawImage(prev,0,0);
+    }
+  }
+
+  /* ── render composite frame ── */
+  function render(){
+    fitCanvas(canvas);
+    ensureOffscreen();
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+
+    // 1. drawing layer
+    ctx.drawImage(offscreen, 0, 0);
+
+    // 2. swatch bar background
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, W, SWATCH_H);
+    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0,SWATCH_H); ctx.lineTo(W,SWATCH_H); ctx.stroke();
+
+    // 3. swatch items
+    const slotW = W / lineTypes.length;
+    lineTypes.forEach((lt, i) => {
+      const sx = i * slotW;
+      const active = i === typeIdx;
+
+      // highlight active slot
+      if(active){
+        ctx.fillStyle = 'rgba(230,57,70,0.1)';
+        ctx.fillRect(sx, 0, slotW, SWATCH_H);
+      }
+
+      // line preview
+      ctx.save();
+      ctx.setLineDash(lt.dash || []);
+      ctx.strokeStyle = active ? '#e63946' : '#444';
+      ctx.lineWidth   = Math.min(lt.width, active ? lt.width : 2);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(sx + 6, SWATCH_H / 2 - 1);
+      ctx.lineTo(sx + slotW - 6, SWATCH_H / 2 - 1);
+      ctx.stroke();
+      ctx.restore();
+
+      // label
+      ctx.font = `${active?'bold ':' '}8px Nunito`;
+      ctx.fillStyle = active ? '#e63946' : '#666';
+      ctx.textAlign = 'center';
+      ctx.fillText(lt.name, sx + slotW / 2, SWATCH_H - 5);
+    });
+    ctx.textAlign = 'left';
+
+    // 4. status text
+    ctx.font = '8px Nunito';
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
+    ctx.fillText(`Active: ${lineTypes[typeIdx].name}  |  Right-click to clear`, 6, H - 6);
+  }
+
+  /* ── pointer helpers ── */
+  function getPos(e){
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    // scale from CSS px to canvas px
+    const scaleX = canvas.width  / r.width;
+    const scaleY = canvas.height / r.height;
+    return [(src.clientX - r.left) * scaleX, (src.clientY - r.top) * scaleY];
+  }
+
+  /* ── drawing ── */
+  function startDraw(e){
+    e.preventDefault();
+    const [x, y] = getPos(e);
+    if(y < SWATCH_H) return; // swatch zone — handled by click
+    drawing  = true;
+    hasMoved = false;
+    lastX = x; lastY = y;
+    wavyT = 0;
+
+    // start a new path segment on the offscreen
+    ensureOffscreen();
+    const oc = offscreen.getContext('2d');
+    const lt = lineTypes[typeIdx];
+    oc.save();
+    oc.setLineDash(lt.dash || []);
+    oc.strokeStyle = lt.color;
+    oc.lineWidth   = lt.width;
+    oc.lineCap     = 'round';
+    oc.lineJoin    = 'round';
+    oc.beginPath();
+    oc.moveTo(x, y);
+    oc.restore();
+  }
+
+  function continueDraw(e){
+    if(!drawing) return;
+    e.preventDefault();
+    hasMoved = true;
+    ensureOffscreen();
+    const [cx, cy] = getPos(e);
+    const oc = offscreen.getContext('2d');
+    const lt = lineTypes[typeIdx];
+    oc.save();
+    oc.setLineDash(lt.dash || []);
+    oc.strokeStyle = lt.color;
+    oc.lineWidth   = lt.width;
+    oc.lineCap     = 'round';
+    oc.lineJoin    = 'round';
+
+    if(lt.wavy){
+      const dist  = Math.hypot(cx - lastX, cy - lastY);
+      const steps = Math.max(1, Math.ceil(dist / 2));
+      oc.beginPath();
+      oc.moveTo(lastX, lastY);
+      for(let s = 1; s <= steps; s++){
+        const t  = s / steps;
+        const mx = lastX + (cx - lastX) * t;
+        const my = lastY + (cy - lastY) * t;
+        const perp = Math.atan2(cy - lastY, cx - lastX) + Math.PI / 2;
+        const amp  = 7 * Math.sin(wavyT + s * 1.1);
+        oc.lineTo(mx + Math.cos(perp) * amp, my + Math.sin(perp) * amp);
+      }
+      oc.stroke();
+      wavyT += 0.6;
+    } else {
+      oc.beginPath();
+      oc.moveTo(lastX, lastY);
+      oc.lineTo(cx, cy);
+      oc.stroke();
+    }
+
+    oc.restore();
+    lastX = cx; lastY = cy;
+    render();
+  }
+
+  function endDraw(){ drawing = false; hasMoved = false; }
+
+  /* ── event wiring ── */
+  canvas.addEventListener('mousedown',  startDraw);
+  canvas.addEventListener('mousemove',  continueDraw);
+  window .addEventListener('mouseup',   endDraw);
+
+  canvas.addEventListener('touchstart', startDraw,    {passive:false});
+  canvas.addEventListener('touchmove',  continueDraw, {passive:false});
+  canvas.addEventListener('touchend',   endDraw);
+
+  // swatch click (fires after mouseup, only if !hasMoved)
+  canvas.addEventListener('click', e => {
+    const [x, y] = getPos(e);
+    if(y < SWATCH_H){
+      const slotW = canvas.width / lineTypes.length;
+      const i = Math.floor(x / slotW);
+      if(i >= 0 && i < lineTypes.length){ typeIdx = i; render(); }
+    }
+  });
+
+  // right-click → clear canvas
+  canvas.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    offscreen = null;
+    ensureOffscreen();
+    render();
+  });
+
+  window.addEventListener('resize', () => { offscreen = null; render(); });
+  render();
+})();
+
+/* ═══════════════════════════════════════
+   ⑤ TEXTURE — click to cycle textures
+═══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('texture-canvas');
+  const art    = document.getElementById('texture-art');
+
+  const textures=[
+    {name:'Rough — Brick',  draw:drawBrick},
+    {name:'Smooth — Gradient', draw:drawSmooth},
+    {name:'Rough — Scratched', draw:drawScratched},
+    {name:'Smooth — Woven',    draw:drawWoven},
+    {name:'Rough — Cracked',   draw:drawCracked},
+  ];
+  let idx=0;
+
+  function drawBrick(ctx,W,H){
+    ctx.fillStyle='#d8cfc5'; ctx.fillRect(0,0,W,H);
+    const bw=W/4, bh=H/8;
+    for(let row=0;row<9;row++){
+      const offset=row%2===0?0:bw/2;
+      for(let col=-1;col<5;col++){
+        const x=col*bw+offset, y=row*bh;
+        const hue=['#c8b8a0','#bfaa90','#c0ad95','#cab89e'][( row+col)%4];
+        ctx.fillStyle=hue;
+        ctx.beginPath(); ctx.roundRect(x+2,y+2,bw-4,bh-4,2);
+        ctx.fill();
+        ctx.strokeStyle='#7a6a55'; ctx.lineWidth=1.5;
+        ctx.stroke();
+        // grain lines
+        ctx.strokeStyle='rgba(80,60,40,0.18)'; ctx.lineWidth=0.7;
+        for(let g=0;g<3;g++){
+          ctx.beginPath();
+          ctx.moveTo(x+bw*0.1+g*bw*0.3,y+3);
+          ctx.bezierCurveTo(x+bw*0.2+g*bw*0.3,y+bh*0.3,x+bw*0.15+g*bw*0.3,y+bh*0.6,x+bw*0.1+g*bw*0.3,y+bh-3);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function drawSmooth(ctx,W,H){
+    // pearl / silk gradient
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,'#f5f5f5'); g.addColorStop(0.3,'#e8e8e8');
+    g.addColorStop(0.6,'#d0d0d0'); g.addColorStop(1,'#aaaaaa');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // subtle sheen bands
+    for(let i=0;i<6;i++){
+      const sg=ctx.createLinearGradient(0,H*i/6,W*0.3,H*(i+1)/6);
+      sg.addColorStop(0,'rgba(255,255,255,0.08)');
+      sg.addColorStop(0.5,'rgba(255,255,255,0.18)');
+      sg.addColorStop(1,'rgba(255,255,255,0.03)');
+      ctx.fillStyle=sg;
+      ctx.fillRect(0,H*i/6,W,H/6);
+    }
+  }
+
+  function drawScratched(ctx,W,H){
+    // ── brushed / scratched metal ──
+    function rng(n){return((n*1664525+1013904223)>>>0)/4294967296;}
+
+    // 1. dark steel base
+    const base=ctx.createLinearGradient(0,0,0,H);
+    base.addColorStop(0,'#8a8a8a');
+    base.addColorStop(0.3,'#aaaaaa');
+    base.addColorStop(0.6,'#909090');
+    base.addColorStop(1,'#787878');
+    ctx.fillStyle=base; ctx.fillRect(0,0,W,H);
+
+    // 2. dense near-horizontal brushed lines (the "grain")
+    for(let i=0;i<260;i++){
+      const y=rng(i*2)*H;
+      const angle=(rng(i*5)-0.5)*0.12; // mostly horizontal, slight tilt
+      const len=W*0.3+rng(i*3)*W*0.7;
+      const x=rng(i*7)*W;
+      const bright=rng(i*11)>0.5;
+      ctx.beginPath();
+      ctx.moveTo(x,y);
+      ctx.lineTo(x+Math.cos(angle)*len, y+Math.sin(angle)*len);
+      ctx.strokeStyle=bright
+        ?`rgba(255,255,255,${0.08+rng(i*13)*0.22})`
+        :`rgba(0,0,0,${0.06+rng(i*17)*0.18})`;
+      ctx.lineWidth=0.4+rng(i*19)*0.9;
+      ctx.lineCap='butt';
+      ctx.stroke();
+    }
+
+    // 3. deep dramatic gouges (fewer, wider, high contrast)
+    for(let i=0;i<28;i++){
+      const y=rng(i*31)*H;
+      const angle=(rng(i*37)-0.5)*0.06;
+      const len=W*0.4+rng(i*41)*W*0.55;
+      const x=rng(i*43)*W*0.6;
+      // dark undercut
+      ctx.beginPath();
+      ctx.moveTo(x, y+1.5);
+      ctx.lineTo(x+Math.cos(angle)*len, y+Math.sin(angle)*len+1.5);
+      ctx.strokeStyle=`rgba(0,0,0,${0.5+rng(i*47)*0.4})`;
+      ctx.lineWidth=1+rng(i*53)*2.5;
+      ctx.lineCap='round'; ctx.stroke();
+      // bright highlight on top
+      ctx.beginPath();
+      ctx.moveTo(x, y-0.5);
+      ctx.lineTo(x+Math.cos(angle)*len, y+Math.sin(angle)*len-0.5);
+      ctx.strokeStyle=`rgba(255,255,255,${0.6+rng(i*59)*0.35})`;
+      ctx.lineWidth=0.5+rng(i*61)*1;
+      ctx.lineCap='round'; ctx.stroke();
+    }
+
+    // 4. a few ultra-long random diagonal cuts
+    for(let i=0;i<8;i++){
+      const x1=rng(i*71)*W*0.4, y1=rng(i*73)*H;
+      const angle=(rng(i*79)-0.3)*0.6;
+      const len=W*0.5+rng(i*83)*W*0.5;
+      ctx.beginPath();
+      ctx.moveTo(x1,y1);
+      ctx.lineTo(x1+Math.cos(angle)*len, y1+Math.sin(angle)*len);
+      ctx.strokeStyle=`rgba(255,255,255,${0.3+rng(i*89)*0.5})`;
+      ctx.lineWidth=0.8;
+      ctx.lineCap='round'; ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1,y1+1.5);
+      ctx.lineTo(x1+Math.cos(angle)*len, y1+Math.sin(angle)*len+1.5);
+      ctx.strokeStyle=`rgba(0,0,0,0.4)`;
+      ctx.lineWidth=0.6;
+      ctx.stroke();
+    }
+
+    // 5. metallic side-to-side sheen overlay
+    const sheen=ctx.createLinearGradient(0,0,W,0);
+    sheen.addColorStop(0,  'rgba(255,255,255,0.0)');
+    sheen.addColorStop(0.2,'rgba(255,255,255,0.12)');
+    sheen.addColorStop(0.45,'rgba(255,255,255,0.28)');
+    sheen.addColorStop(0.55,'rgba(255,255,255,0.08)');
+    sheen.addColorStop(0.8,'rgba(255,255,255,0.18)');
+    sheen.addColorStop(1,  'rgba(255,255,255,0.0)');
+    ctx.fillStyle=sheen; ctx.fillRect(0,0,W,H);
+
+    // 6. vignette edges
+    const vig=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.75);
+    vig.addColorStop(0,'rgba(0,0,0,0)');
+    vig.addColorStop(1,'rgba(0,0,0,0.35)');
+    ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+  }
+
+  function drawWoven(ctx,W,H){
+    ctx.fillStyle='#c8b080'; ctx.fillRect(0,0,W,H);
+    const sz=18;
+    for(let row=0;row<Math.ceil(H/sz)+1;row++){
+      for(let col=0;col<Math.ceil(W/sz)+1;col++){
+        const over=(row+col)%2===0;
+        const x=col*sz, y=row*sz;
+        // horizontal strip
+        ctx.fillStyle=over?'#b89060':'#c8a870';
+        ctx.fillRect(x,y,sz,sz);
+        // vertical strip on top
+        ctx.fillStyle=over?'rgba(90,60,20,0.35)':'rgba(200,160,80,0.5)';
+        ctx.fillRect(x,y,sz,sz);
+        // weave thread
+        ctx.strokeStyle='#8a6a30'; ctx.lineWidth=0.8;
+        ctx.strokeRect(x+0.4,y+0.4,sz-0.8,sz-0.8);
+      }
+    }
+  }
+
+  function drawCracked(ctx,W,H){
+    // dry mud / cracked earth
+    ctx.fillStyle='#b8a080'; ctx.fillRect(0,0,W,H);
+    // crack polygon regions
+    const pts=[
+      [{x:0,y:0},{x:W*0.4,y:H*0.1},{x:W*0.35,y:H*0.45},{x:0,y:H*0.5}],
+      [{x:W*0.4,y:0},{x:W,y:0},{x:W,y:H*0.3},{x:W*0.5,y:H*0.25},{x:W*0.4,y:H*0.1}],
+      [{x:W*0.35,y:H*0.45},{x:W*0.5,y:H*0.25},{x:W,y:H*0.3},{x:W,y:H*0.65},{x:W*0.55,y:H*0.6}],
+      [{x:0,y:H*0.5},{x:W*0.35,y:H*0.45},{x:W*0.55,y:H*0.6},{x:W*0.4,y:H},{x:0,y:H}],
+      [{x:W*0.55,y:H*0.6},{x:W,y:H*0.65},{x:W,y:H},{x:W*0.4,y:H}],
+    ];
+    const colors=['#c0a878','#b89060','#c8b080','#a89060','#b8a070'];
+    pts.forEach((poly,i)=>{
+      ctx.beginPath();
+      ctx.moveTo(poly[0].x,poly[0].y);
+      poly.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
+      ctx.closePath();
+      ctx.fillStyle=colors[i]; ctx.fill();
+      // inner shadow
+      ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=2; ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1; ctx.stroke();
+    });
+    // crack lines
+    ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1.5; ctx.lineCap='round';
+    [[0,H*0.5,W*0.35,H*0.45],[W*0.35,H*0.45,W*0.4,H*0.1],[W*0.4,H*0.1,W*0.5,H*0.25],
+     [W*0.5,H*0.25,W,H*0.3],[W*0.35,H*0.45,W*0.55,H*0.6],[W*0.55,H*0.6,W,H*0.65],
+     [W*0.55,H*0.6,W*0.4,H]].forEach(([x1,y1,x2,y2])=>{
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    });
+  }
+
+  function draw(){
+    fitCanvas(canvas);
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
+    textures[idx].draw(ctx,W,H);
+    // name label
+    ctx.font='bold 10px Nunito';
+    ctx.fillStyle='rgba(0,0,0,0.5)';
+    ctx.letterSpacing='1px';
+    ctx.fillText(textures[idx].name.toUpperCase(),8,H-8);
+    // dots for which texture we're on
+    for(let i=0;i<textures.length;i++){
+      ctx.beginPath();
+      ctx.arc(W-16-i*14,H-10,4,0,Math.PI*2);
+      ctx.fillStyle=i===idx?'rgba(0,0,0,0.6)':'rgba(0,0,0,0.2)';
+      ctx.fill();
+    }
+  }
+
+  canvas.addEventListener('click',()=>{idx=(idx+1)%textures.length; draw();});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();idx=(idx+1)%textures.length;draw();},{passive:false});
+  window.addEventListener('resize',draw);
+  draw();
+})();
+
+/* ═══════════════════════════════════════
+   ⑥ SHAPE — click shapes to morph/animate
+═══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('shape-canvas');
+  const art    = document.getElementById('shape-art');
+
+  // Each shape has: cx,cy, radius, type, morphT (0=geometric, 1=organic), animDir
+  const shapes=[
+    {cx:0.22,cy:0.3,  r:0.12, type:'circle',   morphT:0, speed:0, label:'Circle'},
+    {cx:0.5, cy:0.25, r:0.13, type:'square',   morphT:0, speed:0, label:'Square'},
+    {cx:0.78,cy:0.3,  r:0.12, type:'triangle', morphT:0, speed:0, label:'Triangle'},
+    {cx:0.22,cy:0.68, r:0.12, type:'hexagon',  morphT:0, speed:0, label:'Hexagon'},
+    {cx:0.5, cy:0.72, r:0.13, type:'organic',  morphT:1, speed:0, label:'Organic'},
+    {cx:0.78,cy:0.68, r:0.12, type:'star',     morphT:0, speed:0, label:'Star'},
+  ];
+  let animFrame;
+
+  function drawShape(ctx,s,W,H){
+    const cx=s.cx*W, cy=s.cy*H, r=s.r*Math.min(W,H);
+    const t=s.morphT;
+
+    ctx.beginPath();
+    switch(s.type){
+      case 'circle':
+        // morphs to blob
+        for(let a=0;a<Math.PI*2;a+=0.05){
+          const blobR=r*(1+t*0.35*Math.sin(a*3+1.2));
+          const px=cx+Math.cos(a)*blobR, py=cy+Math.sin(a)*blobR;
+          a<0.05?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        }
+        break;
+      case 'square':
+        // morphs to rounded square → circle
+        {const rr=r*0.75*(1-t)+r*t; // radius of "circle" at t=1
+        const cr=r*0.15+t*r*0.6; // corner radius
+        ctx.roundRect(cx-r*0.75,cy-r*0.75,r*1.5,r*1.5,cr*(1-t)+rr*t);}
+        break;
+      case 'triangle':
+        // morphs to curved triangle
+        for(let i=0;i<3;i++){
+          const a=i*Math.PI*2/3-Math.PI/2;
+          const px=cx+Math.cos(a)*r, py=cy+Math.sin(a)*r;
+          i===0?ctx.moveTo(px,py):( t>0.5?
+            ctx.quadraticCurveTo(cx+Math.cos(a-Math.PI/3)*r*(t),cy+Math.sin(a-Math.PI/3)*r*(t),px,py):
+            ctx.lineTo(px,py)
+          );
+        }
+        break;
+      case 'hexagon':
+        for(let i=0;i<6;i++){
+          const a=i*Math.PI/3;
+          const rr=r*(1+t*0.2*Math.sin(a*2));
+          const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+          i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        }
+        break;
+      case 'organic':
+        // always organic-ish, morphs to rounder
+        for(let a=0;a<Math.PI*2;a+=0.07){
+          const blobR=r*(0.7+0.3*(1-t)*Math.sin(a*4+0.5)*Math.cos(a*2.5));
+          const px=cx+Math.cos(a)*blobR, py=cy+Math.sin(a)*blobR;
+          a<0.07?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        }
+        break;
+      case 'star':
+        // 5-point star morphs to circle
+        for(let i=0;i<10;i++){
+          const a=i*Math.PI/5-Math.PI/2;
+          const rr=i%2===0?r:r*(0.4+t*0.55);
+          const px=cx+Math.cos(a)*rr, py=cy+Math.sin(a)*rr;
+          i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        }
+        break;
+    }
+    ctx.closePath();
+    ctx.fillStyle='rgba(255,255,255,0.0)';
+    ctx.fill();
+    ctx.strokeStyle='#111';
+    ctx.lineWidth=2.2;
+    ctx.stroke();
+
+    // label
+    ctx.font='8px "Special Elite"';
+    ctx.fillStyle='rgba(0,0,0,0.4)';
+    ctx.textAlign='center';
+    ctx.fillText(s.label.toUpperCase(),cx,cy+r+14);
+    ctx.textAlign='left';
+  }
+
+  function draw(){
+    fitCanvas(canvas);
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+
+    // subtle section divider
+    ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=1;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(0,H*0.5); ctx.lineTo(W,H*0.5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W/3,0); ctx.lineTo(W/3,H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(W*2/3,0); ctx.lineTo(W*2/3,H); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // row labels
+    ctx.font='7px Nunito';
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.fillText('GEOMETRIC',8,12);
+    ctx.fillText('ORGANIC  /  MIXED',8,H*0.5+12);
+
+    for(const s of shapes) drawShape(ctx,s,W,H);
+  }
+
+  function animate(){
+    let needsFrame=false;
+    for(const s of shapes){
+      if(s.speed!==0){
+        s.morphT=Math.max(0,Math.min(1,s.morphT+s.speed));
+        if(s.morphT>=1){s.speed=0;s.morphT=1;}
+        else if(s.morphT<=0){s.speed=0;s.morphT=0;}
+        needsFrame=true;
+      }
+    }
+    draw();
+    if(needsFrame) animFrame=requestAnimationFrame(animate);
+  }
+
+  function hitShape(mx,my,W,H){
+    for(const s of shapes){
+      const dx=mx-s.cx*W, dy=my-s.cy*H;
+      if(Math.hypot(dx,dy)<s.r*Math.min(W,H)*1.2) return s;
+    }
+    return null;
+  }
+
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const mx=e.clientX-r.left, my=e.clientY-r.top;
+    const s=hitShape(mx,my,canvas.width,canvas.height);
+    if(s){
+      s.speed = s.morphT<0.5?0.06:-0.06;
+      cancelAnimationFrame(animFrame);
+      animFrame=requestAnimationFrame(animate);
+    }
+  });
+  canvas.addEventListener('touchend',e=>{
+    e.preventDefault();
+    const r=canvas.getBoundingClientRect();
+    const t=e.changedTouches[0];
+    const mx=t.clientX-r.left, my=t.clientY-r.top;
+    const s=hitShape(mx,my,canvas.width,canvas.height);
+    if(s){s.speed=s.morphT<0.5?0.06:-0.06;cancelAnimationFrame(animFrame);animFrame=requestAnimationFrame(animate);}
+  },{passive:false});
+
+  window.addEventListener('resize',draw);
+  draw();
+})();
+
+/* ─── DOWNLOAD ─── */
+function downloadPlate(){
+  const tb=document.getElementById('toolbar');
+  tb.style.display='none';
+  html2canvas(document.getElementById('plate'),{
+    scale:2.5,useCORS:true,backgroundColor:'#ffffff',logging:false,
+    onclone(doc){
+      doc.querySelectorAll('input[type=text]').forEach(i=>{
+        const s=doc.createElement('span');
+        s.style.cssText='font-family:Special Elite,monospace;font-size:11px;color:#111;';
+        s.textContent=i.value||i.placeholder;
+        i.parentNode.replaceChild(s,i);
+      });
+    }
+  }).then(c=>{
+    const a=document.createElement('a');
+    a.download='CPAR-Lesson1-Elements-of-Art.png';
+    a.href=c.toDataURL('image/png');
+    a.click();
+  }).finally(()=>{tb.style.display='';});
+}
+</script>
+</body>
+</html>
