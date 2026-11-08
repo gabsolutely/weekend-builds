@@ -1,0 +1,42 @@
+name: Deploy Single File to Pages
+
+on:
+  push:
+    branches: ["main"] # Change to "master" if your repository uses master instead of main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Isolate just your specific file and rename it to index.html for Pages
+      - name: Isolate target file
+        run: |
+          mkdir staging
+          cp cpar-lesson1-plate.html staging/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './staging' # Only uploads the staging folder
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
